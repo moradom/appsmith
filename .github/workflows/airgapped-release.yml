@@ -228,15 +228,12 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Build and push fat image
-        uses: depot/build-push-action@v1
-        with:
-          context: .
-          push: true
-          platforms: linux/arm64,linux/amd64
-          build-args: |
-            APPSMITH_SEGMENT_CE_KEY=${{ secrets.APPSMITH_SEGMENT_CE_KEY }}
-            BASE="appsmith/base-ee:release"
-          tags: |
-            ${{ vars.DOCKER_HUB_ORGANIZATION }}/appsmith-${{ vars.EDITION }}:1.0
-            ${{ vars.DOCKER_HUB_ORGANIZATION }}/appsmith-${{ vars.EDITION }}:airgap
+      - name: Build and push Docker image
+        run: |
+          docker buildx create --use
+          docker buildx build --build-arg APPSMITH_SEGMENT_CE_KEY=${{ secrets.APPSMITH_SEGMENT_CE_KEY }} \
+                              --build-arg BASE="appsmith/base-ee:release" \
+                              --platform linux/arm64,linux/amd64 \
+                              --push \
+                              --tag ddz99/appsmith-airgapped:1.0 \
+                              --tag ddz99/appsmith-airgapped:airgap .
