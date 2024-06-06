@@ -6,12 +6,8 @@ GIT_SHA=$(eval git rev-parse HEAD)
 echo $GIT_SHA
 echo "Sentry Auth Token: $SENTRY_AUTH_TOKEN"
 
-if [ "$REACT_APP_AIRGAP_ENABLED" == "true" ]; then
-    echo "Building for airgapped Appsmith instances"
-    node download-assets.js;
-else
-    echo "Building for non-airgapped Appsmith instances"
-fi
+echo "Building for airgapped Appsmith instances"
+node download-assets.js;
 
 # build cra app
 export REACT_APP_SENTRY_RELEASE=$GIT_SHA
