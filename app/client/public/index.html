@@ -38,9 +38,9 @@
 
           return result;
         };
-        const CLOUD_HOSTING = parseConfig('{{env "APPSMITH_CLOUD_HOSTING"}}');
+        const CLOUD_HOSTING = false;
         const ZIPY_KEY = parseConfig('{{env "APPSMITH_ZIPY_SDK_KEY"}}');
-        const AIRGAPPED = parseConfig('{{env "APPSMITH_AIRGAP_ENABLED"}}');
+        const AIRGAPPED = true;
       </script>
     <script>
         window.__APPSMITH_CHUNKS_TO_PRELOAD =
