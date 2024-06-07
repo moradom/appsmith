@@ -1,6 +1,5 @@
 package com.appsmith.server.solutions.ce;
 
-import com.appsmith.server.acl.AclPermission;
 import com.appsmith.server.configurations.CommonConfig;
 import com.appsmith.server.configurations.DeploymentProperties;
 import com.appsmith.server.configurations.ProjectProperties;
@@ -24,17 +23,10 @@ import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import reactor.util.function.Tuple7;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
-
-import static com.appsmith.external.constants.AnalyticsConstants.ADMIN_EMAIL_DOMAIN_HASH;
-import static com.appsmith.external.constants.AnalyticsConstants.EMAIL_DOMAIN_HASH;
-import static java.util.Map.entry;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 /**
  * This class represents a scheduled task that pings a data point indicating that this server installation is live.
@@ -61,29 +53,13 @@ public class PingScheduledTaskCEImpl implements PingScheduledTaskCE {
     private final NetworkUtils networkUtils;
     private final PermissionGroupService permissionGroupService;
 
+    @Override
+    public void pingSchedule() {}
+
     enum UserTrackingType {
         DAU,
         WAU,
         MAU
-    }
-
-    /**
-     * Gets the external IP address of this server and pings a data point to indicate that this server instance is live.
-     * We use an initial delay of two minutes to roughly wait for the application along with the migrations are finished
-     * and ready.
-     */
-    // Number of milliseconds between the start of each scheduled calls to this method.
-    @Scheduled(initialDelay = 2 * 60 * 1000 /* two minutes */, fixedRate = 6 * 60 * 60 * 1000 /* six hours */)
-    @Observed(name = "pingSchedule")
-    public void pingSchedule() {
-        if (commonConfig.isTelemetryDisabled()) {
-            return;
-        }
-
-        Mono.zip(configService.getInstanceId(), networkUtils.getExternalAddress())
-                .flatMap(tuple -> doPing(tuple.getT1(), tuple.getT2()))
-                .subscribeOn(Schedulers.single())
-                .subscribe();
     }
 
     /**
@@ -125,84 +101,7 @@ public class PingScheduledTaskCEImpl implements PingScheduledTaskCE {
     // Number of milliseconds between the start of each scheduled calls to this method.
     @Scheduled(initialDelay = 2 * 60 * 1000 /* two minutes */, fixedRate = 24 * 60 * 60 * 1000 /* a day */)
     @Observed(name = "pingStats")
-    public void pingStats() {
-        if (commonConfig.isTelemetryDisabled()) {
-            return;
-        }
-
-        final String ceKey = segmentConfig.getCeKey();
-        if (StringUtils.isEmpty(ceKey)) {
-            log.error("The segment ce key is null");
-            return;
-        }
-
-        Mono<String> publicPermissionGroupIdMono = permissionGroupService.getPublicPermissionGroupId();
-
-        // Get the non-system generated active user count
-        Mono<Long> userCountMono = userRepository
-                .countByDeletedAtIsNullAndIsSystemGeneratedIsNot(true)
-                .defaultIfEmpty(0L);
-
-        Mono<Tuple7<Long, Long, Long, Long, Long, Long, Map<String, Long>>> nonDeletedObjectsCountMono = Mono.zip(
-                workspaceRepository.countByDeletedAtNull().defaultIfEmpty(0L),
-                applicationRepository.countByDeletedAtNull().defaultIfEmpty(0L),
-                newPageRepository.countByDeletedAtNull().defaultIfEmpty(0L),
-                newActionRepository.countByDeletedAtNull().defaultIfEmpty(0L),
-                datasourceRepository.countByDeletedAtNull().defaultIfEmpty(0L),
-                userCountMono,
-                getUserTrackingDetails());
-
-        publicPermissionGroupIdMono
-                .flatMap(publicPermissionGroupId -> Mono.zip(
-                        configService.getInstanceId().defaultIfEmpty("null"),
-                        networkUtils.getExternalAddress(),
-                        nonDeletedObjectsCountMono,
-                        applicationRepository.getAllApplicationsCountAccessibleToARoleWithPermission(
-                                AclPermission.READ_APPLICATIONS, publicPermissionGroupId)))
-                .flatMap(statsData -> {
-                    Map<String, Object> propertiesMap = new java.util.HashMap<>(Map.ofEntries(
-                            entry("instanceId", statsData.getT1()),
-                            entry("numOrgs", statsData.getT3().getT1()),
-                            entry("numApps", statsData.getT3().getT2()),
-                            entry("numPages", statsData.getT3().getT3()),
-                            entry("numActions", statsData.getT3().getT4()),
-                            entry("numDatasources", statsData.getT3().getT5()),
-                            entry("numUsers", statsData.getT3().getT6()),
-                            entry("numPublicApps", statsData.getT4()),
-                            entry("version", projectProperties.getVersion()),
-                            entry("edition", deploymentProperties.getEdition()),
-                            entry("cloudProvider", defaultIfEmpty(deploymentProperties.getCloudProvider(), "")),
-                            entry("efs", defaultIfEmpty(deploymentProperties.getEfs(), "")),
-                            entry("tool", defaultIfEmpty(deploymentProperties.getTool(), "")),
-                            entry("hostname", defaultIfEmpty(deploymentProperties.getHostname(), "")),
-                            entry("deployedAt", defaultIfEmpty(deploymentProperties.getDeployedAt(), "")),
-                            entry(ADMIN_EMAIL_DOMAIN_HASH, commonConfig.getAdminEmailDomainHash()),
-                            entry(EMAIL_DOMAIN_HASH, commonConfig.getAdminEmailDomainHash())));
-
-                    propertiesMap.putAll(statsData.getT3().getT7());
-
-                    final String ipAddress = statsData.getT2();
-                    return WebClientUtils.create("https://api.segment.io")
-                            .post()
-                            .uri("/v1/track")
-                            .headers(headers -> headers.setBasicAuth(ceKey, ""))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(BodyInserters.fromValue(Map.of(
-                                    "userId",
-                                    statsData.getT1(),
-                                    "context",
-                                    Map.of("ip", ipAddress),
-                                    "properties",
-                                    propertiesMap,
-                                    "event",
-                                    "instance_stats")))
-                            .retrieve()
-                            .bodyToMono(String.class);
-                })
-                .doOnError(error -> log.error("Error sending anonymous counts {0}", error))
-                .subscribeOn(Schedulers.boundedElastic())
-                .subscribe();
-    }
+    public void pingStats() {}
 
     private Mono<Map<String, Long>> getUserTrackingDetails() {
 

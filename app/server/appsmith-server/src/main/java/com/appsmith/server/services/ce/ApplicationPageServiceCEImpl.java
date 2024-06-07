@@ -67,7 +67,6 @@ import com.google.common.base.Strings;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONObject;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -399,46 +398,7 @@ public class ApplicationPageServiceCEImpl implements ApplicationPageServiceCE {
     }
 
     private Mono<PageDTO> migrateAndUpdatePageDsl(NewPage newPage, PageDTO page, boolean viewMode) {
-        return dslMigrationUtils
-                .getLatestDslVersion()
-                .onErrorMap(throwable -> {
-                    log.error("Error fetching latest DSL version", throwable);
-                    return new AppsmithException(AppsmithError.RTS_SERVER_ERROR, "Error fetching latest DSL version");
-                })
-                .flatMap(latestDslVersion -> {
-                    // ensuring that the page has only one layout, as we don't support multiple layouts yet
-                    // when multiple layouts are supported, this code will have to be updated
-                    assert page.getLayouts().size() == 1;
-
-                    Layout layout = page.getLayouts().get(0);
-                    JSONObject layoutDsl = layout.getDsl();
-                    boolean isMigrationRequired = GitUtils.isMigrationRequired(layoutDsl, latestDslVersion);
-                    if (isMigrationRequired) {
-                        return dslMigrationUtils
-                                .migratePageDsl(layoutDsl)
-                                .onErrorMap(throwable -> {
-                                    log.error("Error while migrating DSL ", throwable);
-                                    return new AppsmithException(
-                                            AppsmithError.RTS_SERVER_ERROR,
-                                            "Error while migrating to latest DSL version");
-                                })
-                                .flatMap(migratedDsl -> {
-                                    // update the current page DTO with migrated dsl
-                                    page.getLayouts().get(0).setDsl(migratedDsl);
-
-                                    // update the new page with migrated dsl and save to the database
-                                    PageDTO updatedPage;
-                                    if (viewMode) {
-                                        updatedPage = newPage.getPublishedPage();
-                                    } else {
-                                        updatedPage = newPage.getUnpublishedPage();
-                                    }
-                                    updatedPage.getLayouts().get(0).setDsl(migratedDsl);
-                                    return newPageService.save(newPage).thenReturn(page);
-                                });
-                    }
-                    return Mono.just(page);
-                });
+        return dslMigrationUtils.getLatestDslVersion().flatMap(latestDslVersion -> Mono.just(page));
     }
 
     @Override

@@ -3,5 +3,5 @@ export const getAssetUrl = (src = "") => {
 };
 
 export const isAirgapped = () => {
-  return false;
+  return true;
 };

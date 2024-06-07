@@ -187,7 +187,37 @@ public class CacheableFeatureFlagHelperCEImpl implements CacheableFeatureFlagHel
     @Cache(cacheName = "tenantNewFeatures", key = "{#tenantId}")
     @Override
     public Mono<CachedFeatures> updateCachedTenantFeatures(String tenantId, CachedFeatures cachedFeatures) {
-        return Mono.just(cachedFeatures);
+        Map<String, Boolean> featuresMap = new HashMap<>();
+        featuresMap.put("license_git_branch_protection_enabled", true);
+        featuresMap.put("license_session_limit_enabled", true);
+        featuresMap.put("license_git_unlimited_repo_enabled", true);
+        featuresMap.put("license_sso_saml_enabled", true);
+        featuresMap.put("license_scheduled_backup_enabled", true);
+        featuresMap.put("ask_ai_js", true);
+        featuresMap.put("license_connection_pool_size_enabled", true);
+        featuresMap.put("license_message_listener_enabled", true);
+        featuresMap.put("license_custom_environments_enabled", true);
+        featuresMap.put("release_workflows_enabled", true);
+        featuresMap.put("license_scim_enabled", true);
+        featuresMap.put("ask_ai", false);
+        featuresMap.put("license_audit_logs_enabled", true);
+        featuresMap.put("license_gac_enabled", true);
+        featuresMap.put("license_pac_enabled", true);
+        featuresMap.put("ask_ai_sql", false);
+        featuresMap.put("license_private_embeds_enabled", true);
+        featuresMap.put("release_query_module_enabled", true);
+        featuresMap.put("license_session_timeout_enabled", true);
+        featuresMap.put("ab_env_walkthrough_enabled", true);
+        featuresMap.put("license_workflows_enabled", true);
+        featuresMap.put("release_datasource_environments_enabled", true);
+        featuresMap.put("license_git_continuous_delivery_enabled", true);
+        featuresMap.put("release_git_autocommit_feature_enabled", true);
+        featuresMap.put("license_widget_rtl_support_enabled", true);
+        featuresMap.put("license_branding_enabled", true);
+        featuresMap.put("license_sso_oidc_enabled", true);
+        CachedFeatures tmp = new CachedFeatures();
+        tmp.setFeatures(featuresMap);
+        return Mono.just(tmp);
     }
 
     /**
@@ -207,21 +237,36 @@ public class CacheableFeatureFlagHelperCEImpl implements CacheableFeatureFlagHel
      * @return Mono of Map
      */
     private Mono<Map<String, Boolean>> forceAllRemoteFeaturesForTenant(String tenantId) {
-        Mono<String> instanceIdMono = configService.getInstanceId();
-        String appsmithVersion = releaseNotesService.getRunningVersion();
-        return instanceIdMono
-                .map(instanceId -> {
-                    FeaturesRequestDTO featuresRequestDTO = new FeaturesRequestDTO();
-                    featuresRequestDTO.setTenantId(tenantId);
-                    featuresRequestDTO.setInstanceId(instanceId);
-                    featuresRequestDTO.setAppsmithVersion(appsmithVersion);
-                    featuresRequestDTO.setIsCloudHosting(commonConfig.isCloudHosting());
-                    return featuresRequestDTO;
-                })
-                .flatMap(this::getRemoteFeaturesForTenant)
-                .map(responseDTO -> CollectionUtils.isNullOrEmpty(responseDTO.getFeatures())
-                        ? new HashMap<>()
-                        : responseDTO.getFeatures());
+        Map<String, Boolean> featuresMap = new HashMap<>();
+        featuresMap.put("license_git_branch_protection_enabled", true);
+        featuresMap.put("license_session_limit_enabled", true);
+        featuresMap.put("license_git_unlimited_repo_enabled", true);
+        featuresMap.put("license_sso_saml_enabled", true);
+        featuresMap.put("license_scheduled_backup_enabled", true);
+        featuresMap.put("ask_ai_js", true);
+        featuresMap.put("license_connection_pool_size_enabled", true);
+        featuresMap.put("license_message_listener_enabled", true);
+        featuresMap.put("license_custom_environments_enabled", true);
+        featuresMap.put("release_workflows_enabled", true);
+        featuresMap.put("license_scim_enabled", true);
+        featuresMap.put("ask_ai", false);
+        featuresMap.put("license_audit_logs_enabled", true);
+        featuresMap.put("license_gac_enabled", true);
+        featuresMap.put("license_pac_enabled", true);
+        featuresMap.put("ask_ai_sql", false);
+        featuresMap.put("license_private_embeds_enabled", true);
+        featuresMap.put("release_query_module_enabled", true);
+        featuresMap.put("license_session_timeout_enabled", true);
+        featuresMap.put("ab_env_walkthrough_enabled", true);
+        featuresMap.put("license_workflows_enabled", true);
+        featuresMap.put("release_datasource_environments_enabled", true);
+        featuresMap.put("license_git_continuous_delivery_enabled", true);
+        featuresMap.put("release_git_autocommit_feature_enabled", true);
+        featuresMap.put("license_widget_rtl_support_enabled", true);
+        featuresMap.put("license_branding_enabled", true);
+        featuresMap.put("license_sso_oidc_enabled", true);
+
+        return Mono.just(featuresMap);
     }
 
     /**

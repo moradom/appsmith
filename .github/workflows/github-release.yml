@@ -5,12 +5,17 @@ name: Appsmith Github Release Workflow
 # This workflow does NOT run tests.
 # This workflow is automatically triggered when a release is created on GitHub.
 
-# on:
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+      
   # Ref: <https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows#release>.
-  #release:
+  # release:
   #  types:
       # Unlike the `released` event, the `published` event triggers for pre-releases as well.
-  #    - released
+    #  - released
 
 jobs:
   prelude:

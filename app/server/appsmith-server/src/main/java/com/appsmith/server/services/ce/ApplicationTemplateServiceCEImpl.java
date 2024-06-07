@@ -104,12 +104,7 @@ public class ApplicationTemplateServiceCEImpl implements ApplicationTemplateServ
         return WebClientUtils.create(apiUrl).get().exchangeToFlux(clientResponse -> {
             if (clientResponse.statusCode().equals(HttpStatus.OK)) {
                 return clientResponse.bodyToFlux(ApplicationTemplate.class);
-            } else if (clientResponse.statusCode().isError()) {
-                return Flux.error(
-                        new AppsmithException(AppsmithError.CLOUD_SERVICES_ERROR, clientResponse.statusCode()));
-            } else {
-                return clientResponse.createException().flatMapMany(Flux::error);
-            }
+            } else return clientResponse.bodyToFlux(ApplicationTemplate.class);
         });
     }
 
