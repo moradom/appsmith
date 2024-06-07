@@ -29,30 +29,11 @@ export interface VersionUpdateState {
 let timesShown = 0;
 
 function showPrompt(newUpdateState: VersionUpdateState) {
-  toast.show(createMessage(INFO_VERSION_MISMATCH_FOUND_RELOAD_REQUEST), {
-    kind: "info",
-    autoClose: false,
-    action: {
-      text: "refresh",
-      effect: () => handleUpdateRequested(newUpdateState),
-    },
-  });
+  return
 }
 
 function handleUpdateRequested(newUpdateState: VersionUpdateState) {
-  // store version update with timesShown counter
-  setVersionUpdateState({
-    ...newUpdateState,
-    event: UpdateStateEvent.UPDATE_REQUESTED,
-  }).then(() => {
-    AnalyticsUtil.logEvent("VERSION_UPDATE_REQUESTED", {
-      fromVersion: newUpdateState.currentVersion,
-      toVersion: newUpdateState.upgradeVersion,
-      timesShown,
-    });
-    // Reload to fetch the latest app version
-    location.reload();
-  });
+  return
 }
 
 export async function handleVersionUpdate(
