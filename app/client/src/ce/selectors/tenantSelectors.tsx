@@ -53,7 +53,7 @@ export const getInstanceId = (state: AppState): string =>
 export const shouldShowLicenseBanner = (state: AppState) => false;
 
 export const getHideWatermark = (state: AppState): boolean =>
-  state.tenant?.tenantConfiguration?.hideWatermark;
+  true
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const isFreePlan = (state: AppState) => true;
+export const isFreePlan = (state: AppState) => false;
