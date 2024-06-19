@@ -6,11 +6,14 @@ name: Appsmith Github Release Workflow
 # This workflow is automatically triggered when a release is created on GitHub.
 
 on:
-  # Ref: <https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows#release>.
-  release:
-    types:
-      # Unlike the `released` event, the `published` event triggers for pre-releases as well.
-      - released
+  # This line enables manual triggering of this workflow.
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      pr:
+        description: "This is the PR number in case the workflow is being called in a pull request"
+        required: false
+        type: number
 
 jobs:
 
