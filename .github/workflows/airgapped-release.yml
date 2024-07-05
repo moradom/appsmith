@@ -238,5 +238,5 @@ jobs:
                               --build-arg BASE="appsmith/base-ee:release" \
                               --platform linux/arm64,linux/amd64 \
                               --push \
-                              --tag ddz99/appsmith-airgapped:1.0 \
-                              --tag ddz99/appsmith-airgapped:airgap .
+                              --tag mmorado/appsmith-airgapped:1.0 \
+                              --tag mmorado/appsmith-airgapped:airgap .
